@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session
 import models, schemas
 
+def get_task_by_title(db: Session, title: str):
+  return db.query(models.Task).filter(models.Task.title == title).first()
+
 def get_tasks(db: Session, skip: int = 0, limit: int = 100):
   return db.query(models.Task).offset(skip).limit(limit).all()
 

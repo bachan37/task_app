@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, status
+from fastapi import FastAPI, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -11,8 +11,16 @@ app = FastAPI(title="Task Manager API")
 
 @app.post("/tasks/", response_model=schemas.TaskResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
-    return crud.create_task(db=db, task=task)
+  task = crud.get_task_by_title(db=db, title=task.title)
+
+  if task:
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="A task with this title already exists."
+    )
+
+  return crud.create_task(db=db, task=task)
 
 @app.get("/tasks/", response_model=List[schemas.TaskResponse])
 async def read_tasks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_tasks(db=db, skip=skip, limit=limit)
+  return crud.get_tasks(db=db, skip=skip, limit=limit)
